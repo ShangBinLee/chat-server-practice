@@ -1,0 +1,29 @@
+{
+  "name": "chat-server-practice",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "test": "\u0016node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShangBinLee/chat-server-practice.git"
+  },
+  "keywords": [
+    "socket.io",
+    "chat-server"
+  ],
+  "author": "LeeShangBin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShangBinLee/chat-server-practice/issues"
+  },
+  "homepage": "https://github.com/ShangBinLee/chat-server-practice#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.1",
+    "socket.io": "^4.6.1"
+  }
+}
