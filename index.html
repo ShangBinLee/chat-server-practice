@@ -3,12 +3,33 @@
     <head>
       <title>Socket.IO chat</title>
       <style>
-        body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  
-        #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
-        #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
-        #input:focus { outline: none; }
-        #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+        html, body {
+            height:100%;
+        }
+
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        main {
+            display:flex;
+            flex-direction:row;
+            height:93.5%;
+        }
+
+        #chat_list {
+            width:30%;
+            height:100%;
+        }
+
+        #chat_room {
+            width:70%;
+            height:100%;
+            position:relative;
+        }
+
+        #chat_form { height:6.5%; background: rgba(0, 0, 0, 0.15); padding: 0.25rem;  bottom: 0; left: 0; right: 0; display: flex; box-sizing: border-box; backdrop-filter: blur(10px); }
+        #chat_input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+        #chat_input:focus { outline: none; }
+        #chat_form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
   
         #messages { list-style-type: none; margin: 0; padding: 0; }
         #messages > li { padding: 0.5rem 1rem; }
@@ -16,9 +37,116 @@
       </style>
     </head>
     <body>
-      <ul id="messages"></ul>
-      <form id="form" action="">
-        <input id="input" autocomplete="off" /><button>Send</button>
+      <form id="login_form">
+        <input type="text" name="id" placeholder="아이디">
+        <input type="password" name="pwd" placeholder="비밀번호">
+        <button>로그인</button>
       </form>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        const chatHTML = `
+          <main>
+            <div id="chat_list">
+                <ul id="chat_ul">
+                </ul>
+            </div>
+            <div id="chat_room">
+                <ul id="messages">  
+                </ul>
+            </div>
+          </main>
+          <form id="chat_form" action="">
+              <input id="chat_input" autocomplete="off" /><button>전송</button>
+          </form>`;
+      </script>
+      <script>
+        let username = null;
+        let selectedRoomId = null;
+        let messages = null;
+        let chatUl = null;
+
+        document
+          .getElementById('login_form')
+          .addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const loginForm = e.currentTarget;
+
+            id = loginForm.querySelector('[name=id]').value;
+            pwd = loginForm.querySelector('[name=pwd]').value;
+
+            username = await fetch('/login', {
+              method : 'POST',
+              headers : {
+                'Content-Type' : 'application/json'
+              },
+              body : JSON.stringify({ id, pwd })
+            })
+            .then(res => res.json())
+            .then(({ username }) => username);
+            
+            socket.auth = { username };
+            socket.connect();
+
+            document.body.innerHTML = chatHTML;
+
+            const chatForm = document.getElementById('chat_form');
+            const chatInput = document.getElementById('chat_input');
+            messages = document.getElementById('messages');
+            chatUl = document.getElementById('chat_ul');
+
+            chatForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              if (selectedRoomId && chatInput.value) {
+                socket.emit('dm', selectedRoomId, chatInput.value);
+                chatInput.value = '';
+              }
+            });
+          });
+      </script>
+      <script>
+        const socket = io('http://localhost:3000', { autoConnect : false });
+
+        socket.onAny((event, args) => {
+          console.log(event, args);
+        });
+
+        socket.on('chat_rooms', (userRooms) => {
+          chatUl.innerHTML = '';
+          userRooms
+            .map(({ id, seller_name, buyer_name }) => {
+              const item = document.createElement('li');
+
+              if(seller_name === username) {
+                item.textContent = buyer_name;
+                item.classList.add('sell');
+              } else {
+                item.textContent = seller_name;
+                item.classList.add('buy');
+              }
+
+              item.addEventListener('click', () => {
+                messages.innerHTML = '';
+                selectedRoomId = id;
+              });
+
+              return item;
+            })
+            .forEach(item => {
+              chatUl.appendChild(item);
+            });
+        });
+
+        socket.on('dm', ({ roomId, msg }) => {
+          if(roomId !== selectedRoomId) {
+            return;
+          }
+          
+          const item = document.createElement('li');
+          item.textContent = msg;
+          messages.appendChild(item);
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+      </script>
     </body>
 </html>
