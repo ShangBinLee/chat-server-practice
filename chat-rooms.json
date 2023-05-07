@@ -1,0 +1,12 @@
+[
+    {
+        "id":"fa8a8e28-9510-45bb-8b46-b1b248e19c51",
+        "seller_name":"구매자",
+        "buyer_name":"판매자"
+    },
+    {
+        "id":"cc50a6de-1b39-45f7-851c-5bd4f6b31701",
+        "seller_name":"판매자",
+        "buyer_name":"구경꾼"
+    }
+]

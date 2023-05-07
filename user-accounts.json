@@ -1,0 +1,17 @@
+[
+    {
+        "id":"testA",
+        "pwd":"1234",
+        "username":"구매자"
+    },
+    {
+        "id":"testB",
+        "pwd":"5678",
+        "username":"판매자"
+    },
+    {
+        "id":"testC",
+        "pwd":"90",
+        "username":"구경꾼"
+    }
+]
